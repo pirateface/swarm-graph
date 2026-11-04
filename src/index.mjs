@@ -23,20 +23,21 @@ const DEFAULTS = {
   fitPadding: 60,
 };
 
-const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+/** Escape text for use in tooltip HTML (for custom `tooltip` options too). */
+export const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
-// Tooltip: the group's label, its detail lines and, for categories, the busiest models.
-function tooltipOf(group) {
+// Default tooltip: the group's label, its detail lines and, for categories, the busiest models.
+function defaultTooltip(group, label) {
   const { lines = [], topModels = [] } = group.details ?? {};
   return [
-    `<b>${escapeHtml(group.label)}</b>`,
+    `<b>${escapeHtml(label)}</b>`,
     ...lines.map(escapeHtml),
     ...(topModels.length ? ["", "Busiest models:", ...topModels.map(escapeHtml)] : []),
   ].join("<br>");
 }
 
 // Category labels slant down under the bottom row so all of them fit side by side.
-function drawLabel(group, ctx, scale, opts, radius) {
+function drawLabel(group, label, ctx, scale, opts, radius) {
   ctx.font = `${opts.fontSize / scale}px ${opts.font}`;
   ctx.fillStyle = opts.textColor;
   if (group.kind === "category") {
@@ -45,12 +46,12 @@ function drawLabel(group, ctx, scale, opts, radius) {
     ctx.rotate(Math.PI / 4);
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    ctx.fillText(group.label, 0, 0);
+    ctx.fillText(label, 0, 0);
     ctx.restore();
   } else {
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
-    ctx.fillText(group.label, group.x, group.y + radius + 2 / scale);
+    ctx.fillText(label, group.x, group.y + radius + 2 / scale);
   }
 }
 
@@ -66,7 +67,12 @@ const toGraphData = (/** @type {SimpleView} */ view) => ({
  * @param {RenderOptions} [options]
  */
 export function renderSwarmGraph(element, view, options = {}) {
-  const opts = { ...DEFAULTS, ...options };
+  let opts = { ...DEFAULTS, ...options };
+  // Hooks read `opts` at draw time, so setOptions() takes effect on the next frame.
+  const labelOf = (g) => opts.label?.(g) ?? g.label;
+  const colorOf = (g) => opts.groupColor?.(g) ?? g.color;
+  const flowColorOf = (f) => opts.flowColor?.(f) ?? f.color;
+  const tooltipOf = (g) => opts.tooltip?.(g) ?? defaultTooltip(g, labelOf(g));
   const size = (g) => (g.kind === "tracker" ? 8 : 6); // node area; equal sizes so totals don't mislead
   const radius = (g) => Math.sqrt(size(g)) * 4 + 1; // force-graph draws r = sqrt(val) * 4
 
@@ -88,15 +94,15 @@ export function renderSwarmGraph(element, view, options = {}) {
   const graph = ForceGraph()(element)
     .backgroundColor(opts.background)
     .nodeVal(size)
-    .nodeColor((g) => g.color)
+    .nodeColor(colorOf)
     .nodeLabel(tooltipOf)
     .nodeCanvasObjectMode(() => "after")
-    .nodeCanvasObject((g, ctx, scale) => drawLabel(g, ctx, scale, opts, radius(g)))
+    .nodeCanvasObject((g, ctx, scale) => drawLabel(g, labelOf(g), ctx, scale, opts, radius(g)))
     .nodeVisibility((g) => !focus || focus.has(g.id))
     .linkVisibility((l) => !focus || (focus.has(l.source.id) && focus.has(l.target.id)))
     .onNodeHover((g) => { focus = g ? neighbors(g) : null; })
     .onNodeClick((g) => opts.onGroupClick?.(g))
-    .linkColor((l) => l.color)
+    .linkColor(flowColorOf)
     .linkWidth((l) => 1 + Math.log2(l.count))
     .linkLabel((l) => `${l.count}`)
     .linkDirectionalArrowLength(3)
@@ -114,6 +120,11 @@ export function renderSwarmGraph(element, view, options = {}) {
     /** Replace the data (e.g. after polling the API again). Positions are stable, so nothing jumps. */
     update(/** @type {SimpleView} */ next) {
       graph.graphData(toGraphData(next));
+    },
+    /** Change options (e.g. colors after a light/dark theme switch); unchanged ones are kept. */
+    setOptions(/** @type {RenderOptions} */ next) {
+      opts = { ...opts, ...next };
+      graph.backgroundColor(opts.background);
     },
     /** Re-fit the view to the container. */
     fit,

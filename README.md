@@ -31,9 +31,19 @@ In React, call `renderSwarmGraph` in a `useEffect` on a ref and `destroy()` in
 its cleanup. It touches `window`, so with Next.js render it client-side only
 (`"use client"` plus a dynamic import with `ssr: false`).
 
-Options (all optional): `background`, `textColor`, `font`, `fontSize`,
-`fitPadding`, `onGroupClick(group)`. The container sets the size; the graph
-follows it when it resizes.
+Options (all optional):
+
+| Option | Default |
+|---|---|
+| `background`, `textColor` | `#0f172a`, `#e2e8f0` |
+| `font`, `fontSize`, `fitPadding` | `system-ui, sans-serif`, `12`, `60` |
+| `label(group)` | `group.label`; use it to translate |
+| `groupColor(group)`, `flowColor(flow)` | the payload's colors; use them to match a site theme |
+| `tooltip(group)` | label, detail lines, busiest models; build HTML with the exported `escapeHtml` |
+| `onGroupClick(group)` | none |
+
+`graph.setOptions({...})` changes options later, e.g. colors after a light/dark
+switch. The container sets the size; the graph follows it when it resizes.
 
 ## Data (version 1)
 

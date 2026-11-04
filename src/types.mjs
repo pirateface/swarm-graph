@@ -10,7 +10,18 @@
  * @property {number} x            graph units; the renderer fits the view to all groups
  * @property {number} y
  * @property {string} color        any CSS color
- * @property {{ lines?: string[], topModels?: string[] }} [details]  shown on hover
+ * @property {GroupDetails} [details]  shown on hover
+ */
+
+/**
+ * Hover details. Categories also carry `models` and structured `counts`, so a
+ * client can localize or tabulate them instead of using the English `lines`.
+ * @typedef {object} GroupDetails
+ * @property {string[]} [lines]       English text lines
+ * @property {string[]} [topModels]   busiest models (categories)
+ * @property {number} [models]        models with peers (categories)
+ * @property {{ state: string, peers: number, sources: { tracker: number, dht: number, both: number } }[]} [counts]
+ *   peers per state, best state first (categories)
  */
 
 /**
@@ -41,6 +52,10 @@
  * @property {string} [font]         label font family (default "system-ui, sans-serif")
  * @property {number} [fontSize]     label size in px at zoom 1 (default 12)
  * @property {number} [fitPadding]   px around the groups when fitting (default 60)
+ * @property {(group: Group) => string} [label]       label text (e.g. translated); default group.label
+ * @property {(group: Group) => string} [groupColor]  dot color; default group.color
+ * @property {(flow: Flow) => string} [flowColor]     line color; default flow.color
+ * @property {(group: Group) => string} [tooltip]     tooltip HTML; escape text with escapeHtml()
  * @property {(group: Group) => void} [onGroupClick]
  */
 
