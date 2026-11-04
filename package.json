@@ -1,0 +1,32 @@
+{
+  "name": "swarm-graph",
+  "version": "0.1.0",
+  "description": "Renderer for the Pirate Face swarm pyramid (swarm API /api/v1/simple)",
+  "scripts": {
+    "build": "esbuild src/index.mjs --bundle --format=esm --minify --outfile=dist/swarm-graph.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pirateface/swarm-graph.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pirateface/swarm-graph/issues"
+  },
+  "homepage": "https://github.com/pirateface/swarm-graph#readme",
+  "dependencies": {
+    "force-graph": "^1.47.4"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  },
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs",
+    "./bundle": "./dist/swarm-graph.js"
+  },
+  "files": [
+    "src",
+    "dist"
+  ]
+}

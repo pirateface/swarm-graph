@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pirate Face swarms</title>
+<style>
+  html, body { margin: 0; height: 100%; font: 14px system-ui, sans-serif; background: #0f172a; color: #e2e8f0; }
+  #graph { position: absolute; inset: 0; }
+  #panel { position: absolute; z-index: 10; top: 10px; left: 10px; background: #1e293bee; padding: 10px 12px; border-radius: 6px; max-width: 380px; }
+  .swarm-graph-legend-item { font-size: 12px; color: #cbd5e1; margin-right: 8px; white-space: nowrap; }
+  .swarm-graph-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
+  #summary { color: #94a3b8; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div id="graph"></div>
+<div id="panel"><div id="legend"></div><div id="summary">Loading…</div></div>
+<script type="module">
+// Demo: ?api=<swarm API base URL> (default: this page's origin).
+import { legendHtml, renderSwarmGraph } from "../dist/swarm-graph.js";
+
+const api = new URLSearchParams(location.search).get("api") ?? location.origin;
+const load = async () => (await fetch(`${api}/api/v1/simple`)).json();
+
+const view = await load();
+const graph = renderSwarmGraph(document.getElementById("graph"), view);
+const show = (v) => {
+  document.getElementById("legend").innerHTML = legendHtml(v);
+  document.getElementById("summary").textContent =
+    `${v.totals.models.toLocaleString()} models in ${v.totals.categories} categories · updated ${new Date(v.generatedAt).toLocaleTimeString()}`;
+};
+show(view);
+setInterval(async () => { const v = await load(); graph.update(v); show(v); }, 10 * 60_000); // the API refreshes every 10 min
+</script>
+</body>
+</html>

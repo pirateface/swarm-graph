@@ -1,0 +1,134 @@
+// swarm-graph: draws the Pirate Face swarm pyramid from the swarm API's
+// Simple-view payload (GET /api/v1/simple). The payload carries positions,
+// labels, colors and the legend, so this module only draws; see README.md for
+// the format.
+//
+//   import { renderSwarmGraph } from "swarm-graph";
+//   const graph = renderSwarmGraph(element, payload);
+//   graph.update(newPayload);  // later
+//   graph.destroy();
+//
+// Browser only (needs a DOM and a canvas).
+
+import ForceGraph from "force-graph";
+
+/** @typedef {import("./types.mjs").SimpleView} SimpleView */
+/** @typedef {import("./types.mjs").RenderOptions} RenderOptions */
+
+const DEFAULTS = {
+  background: "#0f172a",
+  textColor: "#e2e8f0",
+  font: "system-ui, sans-serif",
+  fontSize: 12,
+  fitPadding: 60,
+};
+
+const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+// Tooltip: the group's label, its detail lines and, for categories, the busiest models.
+function tooltipOf(group) {
+  const { lines = [], topModels = [] } = group.details ?? {};
+  return [
+    `<b>${escapeHtml(group.label)}</b>`,
+    ...lines.map(escapeHtml),
+    ...(topModels.length ? ["", "Busiest models:", ...topModels.map(escapeHtml)] : []),
+  ].join("<br>");
+}
+
+// Category labels slant down under the bottom row so all of them fit side by side.
+function drawLabel(group, ctx, scale, opts, radius) {
+  ctx.font = `${opts.fontSize / scale}px ${opts.font}`;
+  ctx.fillStyle = opts.textColor;
+  if (group.kind === "category") {
+    ctx.save();
+    ctx.translate(group.x, group.y + radius + 3 / scale);
+    ctx.rotate(Math.PI / 4);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(group.label, 0, 0);
+    ctx.restore();
+  } else {
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillText(group.label, group.x, group.y + radius + 2 / scale);
+  }
+}
+
+// force-graph input: groups pinned at the payload's positions, flows as links.
+const toGraphData = (/** @type {SimpleView} */ view) => ({
+  nodes: view.groups.map((g) => ({ ...g, fx: g.x, fy: g.y })),
+  links: view.flows.map((f) => ({ ...f, source: f.from, target: f.to })),
+});
+
+/**
+ * @param {HTMLElement} element  container; the graph fills it
+ * @param {SimpleView} view      payload from /api/v1/simple
+ * @param {RenderOptions} [options]
+ */
+export function renderSwarmGraph(element, view, options = {}) {
+  const opts = { ...DEFAULTS, ...options };
+  const size = (g) => (g.kind === "tracker" ? 8 : 6); // node area; equal sizes so totals don't mislead
+  const radius = (g) => Math.sqrt(size(g)) * 4 + 1; // force-graph draws r = sqrt(val) * 4
+
+  // Hovering a group shows only it and the groups it links to.
+  let focus = null;
+  let pendingFit = true; // fit once the first frame is laid out
+  const neighbors = (group) => new Set([group.id, ...graph.graphData().links
+    .filter((l) => l.source.id === group.id || l.target.id === group.id)
+    .flatMap((l) => [l.source.id, l.target.id])]);
+
+  const fit = () => {
+    graph.zoomToFit(0, opts.fitPadding);
+    // Slanted category labels hang below the bottom row: shift up and zoom out a little to show them.
+    const c = graph.centerAt();
+    graph.centerAt(c.x + 40 / graph.zoom(), c.y + 60 / graph.zoom(), 400);
+    graph.zoom(graph.zoom() * 0.8, 400);
+  };
+
+  const graph = ForceGraph()(element)
+    .backgroundColor(opts.background)
+    .nodeVal(size)
+    .nodeColor((g) => g.color)
+    .nodeLabel(tooltipOf)
+    .nodeCanvasObjectMode(() => "after")
+    .nodeCanvasObject((g, ctx, scale) => drawLabel(g, ctx, scale, opts, radius(g)))
+    .nodeVisibility((g) => !focus || focus.has(g.id))
+    .linkVisibility((l) => !focus || (focus.has(l.source.id) && focus.has(l.target.id)))
+    .onNodeHover((g) => { focus = g ? neighbors(g) : null; })
+    .onNodeClick((g) => opts.onGroupClick?.(g))
+    .linkColor((l) => l.color)
+    .linkWidth((l) => 1 + Math.log2(l.count))
+    .linkLabel((l) => `${l.count}`)
+    .linkDirectionalArrowLength(3)
+    .linkDirectionalArrowRelPos(1)
+    .autoPauseRedraw(false) // redraw on hover; nothing moves, so this is cheap
+    .cooldownTicks(0) // positions come from the payload: no simulation
+    .onEngineStop(() => { if (pendingFit) { pendingFit = false; fit(); } });
+
+  graph.graphData(toGraphData(view));
+
+  const resize = new ResizeObserver(() => graph.width(element.clientWidth).height(element.clientHeight));
+  resize.observe(element);
+
+  return {
+    /** Replace the data (e.g. after polling the API again). Positions are stable, so nothing jumps. */
+    update(/** @type {SimpleView} */ next) {
+      graph.graphData(toGraphData(next));
+    },
+    /** Re-fit the view to the container. */
+    fit,
+    /** Remove the graph and its listeners. */
+    destroy() {
+      resize.disconnect();
+      graph._destructor?.();
+      element.replaceChildren();
+    },
+  };
+}
+
+/** HTML for a legend (swatches + labels) from the payload. */
+export function legendHtml(/** @type {SimpleView} */ view) {
+  return view.legend
+    .map((item) => `<span class="swarm-graph-legend-item"><span class="swarm-graph-swatch" style="background:${escapeHtml(item.color)}"></span>${escapeHtml(item.label)}</span>`)
+    .join(" ");
+}
