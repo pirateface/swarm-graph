@@ -105,7 +105,7 @@ export function renderSwarmGraph(element, view, options = {}) {
     .onNodeClick((g) => opts.onGroupClick?.(g))
     .linkColor(flowColorOf)
     .linkWidth((l) => 1 + Math.log2(l.count))
-    .linkLabel((l) => `${l.count}`)
+    .linkLabel((l) => (opts.flowLabel ? opts.flowLabel(l) : `${l.count}`))
     .linkDirectionalArrowLength(3)
     .linkDirectionalArrowRelPos(1)
     .autoPauseRedraw(false) // redraw on hover; nothing moves, so this is cheap

@@ -41,6 +41,7 @@ Options (all optional):
 | `groupColor(group)`, `flowColor(flow)` | the payload's colors; use them to match a site theme |
 | `size(group)` | dot area, all equal (`6`, tracker `8`); e.g. size categories by `details.counts` |
 | `tooltip(group)` | label, detail lines, busiest models; build HTML with the exported `escapeHtml` |
+| `flowLabel(flow)` | the flow's count; return `""` for no hover text |
 | `onGroupClick(group)` | none |
 
 `graph.setOptions({...})` changes options later, e.g. colors after a light/dark
