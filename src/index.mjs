@@ -87,23 +87,22 @@ export function renderSwarmGraph(element, view, options = {}) {
     if (t >= 1) { pulses.delete(g.id); return; }
     const r = radius(g);
     ctx.save();
-    ctx.globalAlpha = 1 - t;
     ctx.fillStyle = ctx.strokeStyle = colorOf(g);
-    ctx.lineWidth = 2 / scale;
-    ctx.globalAlpha = 0.35 * (1 - t);
+    ctx.lineWidth = 1 / scale;
+    ctx.globalAlpha = 0.15 * (1 - t);
     ctx.beginPath();
     ctx.arc(g.x, g.y, r + 6 / scale, 0, 2 * Math.PI);
     ctx.fill();
-    ctx.globalAlpha = 1 - t;
+    ctx.globalAlpha = 0.6 * (1 - t);
     ctx.beginPath();
-    ctx.arc(g.x, g.y, r + (4 + 14 * t) / scale, 0, 2 * Math.PI);
+    ctx.arc(g.x, g.y, r + (3 + 8 * t) / scale, 0, 2 * Math.PI);
     ctx.stroke();
     if (p.text) {
-      ctx.font = `bold ${opts.fontSize / scale}px ${opts.font}`;
+      ctx.font = `${opts.fontSize / scale}px ${opts.font}`;
       ctx.fillStyle = opts.textColor;
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
-      ctx.fillText(p.text, g.x, g.y - r - (4 + 16 * t) / scale);
+      ctx.fillText(p.text, g.x, g.y - r - (4 + 8 * t) / scale);
     }
     ctx.restore();
   };
