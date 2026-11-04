@@ -73,7 +73,8 @@ export function renderSwarmGraph(element, view, options = {}) {
   const colorOf = (g) => opts.groupColor?.(g) ?? g.color;
   const flowColorOf = (f) => opts.flowColor?.(f) ?? f.color;
   const tooltipOf = (g) => opts.tooltip?.(g) ?? defaultTooltip(g, labelOf(g));
-  const size = (g) => (g.kind === "tracker" ? 8 : 6); // node area; equal sizes so totals don't mislead
+  // Dot area (force-graph's nodeVal). Default: all equal, so totals don't mislead.
+  const size = (g) => opts.size?.(g) ?? (g.kind === "tracker" ? 8 : 6);
   const radius = (g) => Math.sqrt(size(g)) * 4 + 1; // force-graph draws r = sqrt(val) * 4
 
   // Hovering a group shows only it and the groups it links to.

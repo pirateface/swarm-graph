@@ -54,6 +54,7 @@
  * @property {number} [fitPadding]   px around the groups when fitting (default 60)
  * @property {(group: Group) => string} [label]       label text (e.g. translated); default group.label
  * @property {(group: Group) => string} [groupColor]  dot color; default group.color
+ * @property {(group: Group) => number} [size]        dot area (radius grows with its square root); default 6, tracker 8
  * @property {(flow: Flow) => string} [flowColor]     line color; default flow.color
  * @property {(group: Group) => string} [tooltip]     tooltip HTML; escape text with escapeHtml()
  * @property {(group: Group) => void} [onGroupClick]

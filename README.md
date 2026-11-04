@@ -39,6 +39,7 @@ Options (all optional):
 | `font`, `fontSize`, `fitPadding` | `system-ui, sans-serif`, `12`, `60` |
 | `label(group)` | `group.label`; use it to translate |
 | `groupColor(group)`, `flowColor(flow)` | the payload's colors; use them to match a site theme |
+| `size(group)` | dot area, all equal (`6`, tracker `8`); e.g. size categories by `details.counts` |
 | `tooltip(group)` | label, detail lines, busiest models; build HTML with the exported `escapeHtml` |
 | `onGroupClick(group)` | none |
 
