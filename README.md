@@ -16,7 +16,7 @@ import { renderSwarmGraph, legendHtml } from "swarm-graph";
 const view = await (await fetch(`${PEER_MAP_API}/api/v1/simple`)).json();
 const graph = renderSwarmGraph(document.getElementById("graph"), view, { onGroupClick: console.log });
 document.getElementById("legend").innerHTML = legendHtml(view);
-// later: graph.update(newView); graph.fit(); graph.destroy();
+// later: graph.update(newView); graph.pulse("c:Qwen", "+2"); graph.fit(); graph.destroy();
 ```
 
 Without a bundler, import the prebuilt file (force-graph included):
@@ -43,6 +43,9 @@ Options (all optional):
 | `tooltip(group)` | label, detail lines, busiest models; build HTML with the exported `escapeHtml` |
 | `flowLabel(flow)` | the flow's count; return `""` for no hover text |
 | `onGroupClick(group)` | none |
+
+`graph.pulse(id, text)` lights a group up for 2.5 s: a fading ring and `text`
+rising above it, e.g. after polling shows it gained peers.
 
 `graph.setOptions({...})` changes options later, e.g. colors after a light/dark
 switch. The container sets the size; the graph follows it when it resizes.

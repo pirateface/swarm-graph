@@ -77,6 +77,37 @@ export function renderSwarmGraph(element, view, options = {}) {
   const size = (g) => opts.size?.(g) ?? (g.kind === "tracker" ? 8 : 6);
   const radius = (g) => Math.sqrt(size(g)) * 4 + 1; // force-graph draws r = sqrt(val) * 4
 
+  // Pulses from pulse(): a fading ring and a rising text per group id.
+  const PULSE_MS = 2500;
+  const pulses = new Map();
+  const drawPulse = (g, ctx, scale) => {
+    const p = pulses.get(g.id);
+    if (!p) return;
+    const t = (performance.now() - p.start) / PULSE_MS;
+    if (t >= 1) { pulses.delete(g.id); return; }
+    const r = radius(g);
+    ctx.save();
+    ctx.globalAlpha = 1 - t;
+    ctx.fillStyle = ctx.strokeStyle = colorOf(g);
+    ctx.lineWidth = 2 / scale;
+    ctx.globalAlpha = 0.35 * (1 - t);
+    ctx.beginPath();
+    ctx.arc(g.x, g.y, r + 6 / scale, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.globalAlpha = 1 - t;
+    ctx.beginPath();
+    ctx.arc(g.x, g.y, r + (4 + 14 * t) / scale, 0, 2 * Math.PI);
+    ctx.stroke();
+    if (p.text) {
+      ctx.font = `bold ${opts.fontSize / scale}px ${opts.font}`;
+      ctx.fillStyle = opts.textColor;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.fillText(p.text, g.x, g.y - r - (4 + 16 * t) / scale);
+    }
+    ctx.restore();
+  };
+
   // Hovering a group shows only it and the groups it links to.
   let focus = null;
   let pendingFit = true; // fit once the first frame is laid out
@@ -98,7 +129,7 @@ export function renderSwarmGraph(element, view, options = {}) {
     .nodeColor(colorOf)
     .nodeLabel(tooltipOf)
     .nodeCanvasObjectMode(() => "after")
-    .nodeCanvasObject((g, ctx, scale) => drawLabel(g, labelOf(g), ctx, scale, opts, radius(g)))
+    .nodeCanvasObject((g, ctx, scale) => { drawLabel(g, labelOf(g), ctx, scale, opts, radius(g)); drawPulse(g, ctx, scale); })
     .nodeVisibility((g) => !focus || focus.has(g.id))
     .linkVisibility((l) => !focus || (focus.has(l.source.id) && focus.has(l.target.id)))
     .onNodeHover((g) => { focus = g ? neighbors(g) : null; })
@@ -121,6 +152,10 @@ export function renderSwarmGraph(element, view, options = {}) {
     /** Replace the data (e.g. after polling the API again). Positions are stable, so nothing jumps. */
     update(/** @type {SimpleView} */ next) {
       graph.graphData(toGraphData(next));
+    },
+    /** Light up a group for a moment: a fading ring, plus `text` (e.g. "+2") rising above it. */
+    pulse(/** @type {string} */ id, /** @type {string} */ text = "") {
+      pulses.set(id, { text, start: performance.now() });
     },
     /** Change options (e.g. colors after a light/dark theme switch); unchanged ones are kept. */
     setOptions(/** @type {RenderOptions} */ next) {
