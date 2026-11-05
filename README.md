@@ -44,8 +44,8 @@ Options (all optional):
 | `flowLabel(flow)` | the flow's count; return `""` for no hover text |
 | `onGroupClick(group)` | none |
 
-`graph.pulse(id, text)` lights a group up for 2.5 s: a fading ring and `text`
-rising above it, e.g. after polling shows it gained peers.
+`graph.pulse(id, text, color)` lights a group up for 2.5 s: a fading ring and
+`text` rising above it, in `color` (default: the group's color).
 
 `graph.setOptions({...})` changes options later, e.g. colors after a light/dark
 switch. The container sets the size; the graph follows it when it resizes.

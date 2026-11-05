@@ -87,7 +87,7 @@ export function renderSwarmGraph(element, view, options = {}) {
     if (t >= 1) { pulses.delete(g.id); return; }
     const r = radius(g);
     ctx.save();
-    ctx.fillStyle = ctx.strokeStyle = colorOf(g);
+    ctx.fillStyle = ctx.strokeStyle = p.color ?? colorOf(g);
     ctx.lineWidth = 1 / scale;
     ctx.globalAlpha = 0.15 * (1 - t);
     ctx.beginPath();
@@ -152,9 +152,9 @@ export function renderSwarmGraph(element, view, options = {}) {
     update(/** @type {SimpleView} */ next) {
       graph.graphData(toGraphData(next));
     },
-    /** Light up a group for a moment: a fading ring, plus `text` (e.g. "+2") rising above it. */
-    pulse(/** @type {string} */ id, /** @type {string} */ text = "") {
-      pulses.set(id, { text, start: performance.now() });
+    /** Light up a group for a moment: a fading ring, plus `text` (e.g. "+2") rising above it; `color` defaults to the group's. */
+    pulse(/** @type {string} */ id, /** @type {string} */ text = "", /** @type {string | undefined} */ color) {
+      pulses.set(id, { text, color, start: performance.now() });
     },
     /** Change options (e.g. colors after a light/dark theme switch); unchanged ones are kept. */
     setOptions(/** @type {RenderOptions} */ next) {
