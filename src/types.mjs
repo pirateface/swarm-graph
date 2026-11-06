@@ -56,6 +56,7 @@
  * @property {(group: Group) => string} [groupColor]  dot color; default group.color
  * @property {(group: Group) => number} [size]        dot area (radius grows with its square root); default 6, tracker 8
  * @property {(flow: Flow) => string} [flowColor]     line color; default flow.color
+ * @property {(flow: Flow) => [string, string] | undefined} [flowGradient]  from and to colors for a two-color line, drawn without an arrow
  * @property {(group: Group) => string} [tooltip]     tooltip HTML; escape text with escapeHtml()
  * @property {(flow: Flow) => string} [flowLabel]     flow hover text; default its count, "" shows none
  * @property {(group: Group) => void} [onGroupClick]

@@ -72,6 +72,7 @@ export function renderSwarmGraph(element, view, options = {}) {
   const labelOf = (g) => opts.label?.(g) ?? g.label;
   const colorOf = (g) => opts.groupColor?.(g) ?? g.color;
   const flowColorOf = (f) => opts.flowColor?.(f) ?? f.color;
+  const flowWidth = (f) => 1 + Math.log2(f.count);
   const tooltipOf = (g) => opts.tooltip?.(g) ?? defaultTooltip(g, labelOf(g));
   // Dot area (force-graph's nodeVal). Default: all equal, so totals don't mislead.
   const size = (g) => opts.size?.(g) ?? (g.kind === "tracker" ? 8 : 6);
@@ -134,7 +135,20 @@ export function renderSwarmGraph(element, view, options = {}) {
     .onNodeHover((g) => { focus = g ? neighbors(g) : null; })
     .onNodeClick((g) => opts.onGroupClick?.(g))
     .linkColor(flowColorOf)
-    .linkWidth((l) => 1 + Math.log2(l.count))
+    .linkWidth(flowWidth)
+    .linkCanvasObjectMode((l) => (opts.flowGradient?.(l) ? "replace" : undefined))
+    .linkCanvasObject((l, ctx, scale) => {
+      const [from, to] = opts.flowGradient(l);
+      const gradient = ctx.createLinearGradient(l.source.x, l.source.y, l.target.x, l.target.y);
+      gradient.addColorStop(0, from);
+      gradient.addColorStop(1, to);
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = flowWidth(l) / scale;
+      ctx.beginPath();
+      ctx.moveTo(l.source.x, l.source.y);
+      ctx.lineTo(l.target.x, l.target.y);
+      ctx.stroke();
+    })
     .linkLabel((l) => (opts.flowLabel ? opts.flowLabel(l) : `${l.count}`))
     .linkDirectionalArrowLength(3)
     .linkDirectionalArrowRelPos(1)
