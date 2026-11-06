@@ -41,6 +41,8 @@ Options (all optional):
 | `hoverFade` | `0.15`; opacity of everything outside the hovered group's neighbors |
 | `fitZoom` | `0.8`; scale after fitting, higher shows the graph larger |
 | `labelAngle` | `45`; slant of category labels in degrees |
+| `marked` | `(group) => boolean`; groups that keep `markText` above their dot |
+| `markText` | `"You"`; text above marked groups |
 | `locked` | `false`; `true` turns off zoom, pan and drag, keeps hover, and lets the page scroll past |
 | `groupColor(group)`, `flowColor(flow)` | the payload's colors; use them to match a site theme |
 | `flowGradient(flow)` | a solid line; return `[from, to]` for a two-color line with no arrow |

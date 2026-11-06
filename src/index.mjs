@@ -24,6 +24,7 @@ const DEFAULTS = {
   hoverFade: 0.15,
   fitPadding: 60,
   labelAngle: 45,
+  markText: "You",
 };
 
 /** Escape text for use in tooltip HTML (for custom `tooltip` options too). */
@@ -43,6 +44,11 @@ function defaultTooltip(group, label) {
 function drawLabel(group, label, ctx, scale, opts, radius) {
   ctx.font = `${opts.fontSize / scale}px ${opts.font}`;
   ctx.fillStyle = opts.textColor;
+  if (opts.marked?.(group)) {
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    ctx.fillText(opts.markText, group.x, group.y - radius - 3 / scale);
+  }
   if (group.kind === "category") {
     ctx.save();
     ctx.translate(group.x, group.y + radius + 3 / scale);
