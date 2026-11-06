@@ -21,6 +21,7 @@ const DEFAULTS = {
   font: "system-ui, sans-serif",
   fontSize: 12,
   fitZoom: 0.8,
+  hoverFade: 0.15,
   fitPadding: 60,
 };
 
@@ -74,6 +75,21 @@ export function renderSwarmGraph(element, view, options = {}) {
   const colorOf = (g) => opts.groupColor?.(g) ?? g.color;
   const flowColorOf = (f) => opts.flowColor?.(f) ?? f.color;
   const flowWidth = (f) => 1 + Math.log2(f.count);
+  // While hovering, everything outside the hovered group's neighborhood stays visible but faint.
+  const inFocus = (g) => !focus || focus.has(g.id);
+  const flowInFocus = (l) => !focus || (focus.has(l.source.id) && focus.has(l.target.id));
+  const scratch = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+  const fadedColors = new Map();
+  const faded = (color) => {
+    if (!fadedColors.has(color)) {
+      scratch.clearRect(0, 0, 1, 1);
+      scratch.fillStyle = color;
+      scratch.fillRect(0, 0, 1, 1);
+      const [r, g, b, a] = scratch.getImageData(0, 0, 1, 1).data;
+      fadedColors.set(color, `rgba(${r}, ${g}, ${b}, ${(a / 255) * opts.hoverFade})`);
+    }
+    return fadedColors.get(color);
+  };
   const tooltipOf = (g) => opts.tooltip?.(g) ?? defaultTooltip(g, labelOf(g));
   // Dot area (force-graph's nodeVal). Default: all equal, so totals don't mislead.
   const size = (g) => opts.size?.(g) ?? (g.kind === "tracker" ? 8 : 6);
@@ -130,20 +146,23 @@ export function renderSwarmGraph(element, view, options = {}) {
     .enablePanInteraction(!opts.locked)
     .enableNodeDrag(!opts.locked)
     .nodeVal(size)
-    .nodeColor(colorOf)
+    .nodeColor((g) => (inFocus(g) ? colorOf(g) : faded(colorOf(g))))
     .nodeLabel(tooltipOf)
     .nodeCanvasObjectMode(() => "after")
-    .nodeCanvasObject((g, ctx, scale) => { drawLabel(g, labelOf(g), ctx, scale, opts, radius(g)); drawPulse(g, ctx, scale); })
-    .nodeVisibility((g) => !focus || focus.has(g.id))
-    .linkVisibility((l) => !focus || (focus.has(l.source.id) && focus.has(l.target.id)))
+    .nodeCanvasObject((g, ctx, scale) => {
+      ctx.globalAlpha = inFocus(g) ? 1 : opts.hoverFade;
+      drawLabel(g, labelOf(g), ctx, scale, opts, radius(g));
+      ctx.globalAlpha = 1;
+      drawPulse(g, ctx, scale);
+    })
     .onNodeHover((g) => { focus = g ? neighbors(g) : null; })
     .onNodeClick((g) => opts.onGroupClick?.(g))
-    .linkColor(flowColorOf)
+    .linkColor((l) => (flowInFocus(l) ? flowColorOf(l) : faded(flowColorOf(l))))
     .linkWidth(flowWidth)
     .linkCanvasObjectMode((l) => (opts.flowGradient?.(l) ? "replace" : undefined))
     .linkCanvasObject((l, ctx, scale) => {
       if (!Number.isFinite(l.source.x) || !Number.isFinite(l.target.x)) return; // not laid out yet
-      const [from, to] = opts.flowGradient(l);
+      const [from, to] = opts.flowGradient(l).map((color) => (flowInFocus(l) ? color : faded(color)));
       const gradient = ctx.createLinearGradient(l.source.x, l.source.y, l.target.x, l.target.y);
       gradient.addColorStop(0, from);
       gradient.addColorStop(1, to);

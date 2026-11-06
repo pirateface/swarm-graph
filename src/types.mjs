@@ -55,6 +55,7 @@
  * @property {(group: Group) => string} [label]       label text (e.g. translated); default group.label
  * @property {(group: Group) => string} [groupColor]  dot color; default group.color
  * @property {(group: Group) => number} [size]        dot area (radius grows with its square root); default 6, tracker 8
+ * @property {number} [hoverFade]                    opacity of everything else while hovering a group; default 0.15
  * @property {number} [fitZoom]                      scale after fitting; default 0.8 leaves room for slanted labels
  * @property {boolean} [locked]                       no zoom, pan or drag; hover still works and the page scrolls past
  * @property {(flow: Flow) => string} [flowColor]     line color; default flow.color

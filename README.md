@@ -38,6 +38,7 @@ Options (all optional):
 | `background`, `textColor` | `#0f172a`, `#e2e8f0` |
 | `font`, `fontSize`, `fitPadding` | `system-ui, sans-serif`, `12`, `60` |
 | `label(group)` | `group.label`; use it to translate |
+| `hoverFade` | `0.15`; opacity of everything outside the hovered group's neighbors |
 | `fitZoom` | `0.8`; scale after fitting, higher shows the graph larger |
 | `locked` | `false`; `true` turns off zoom, pan and drag, keeps hover, and lets the page scroll past |
 | `groupColor(group)`, `flowColor(flow)` | the payload's colors; use them to match a site theme |
