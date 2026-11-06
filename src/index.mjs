@@ -119,8 +119,8 @@ export function renderSwarmGraph(element, view, options = {}) {
     graph.zoomToFit(0, opts.fitPadding);
     // Slanted category labels hang below the bottom row: shift up and zoom out a little to show them.
     const c = graph.centerAt();
-    graph.centerAt(c.x + 40 / graph.zoom(), c.y + 60 / graph.zoom(), 400);
-    graph.zoom(graph.zoom() * 0.8, 400);
+    graph.centerAt(c.x + 40 / graph.zoom(), c.y + 60 / graph.zoom());
+    graph.zoom(graph.zoom() * 0.8);
   };
 
   const graph = ForceGraph()(element)
