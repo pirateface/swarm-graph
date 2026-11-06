@@ -38,6 +38,7 @@ Options (all optional):
 | `background`, `textColor` | `#0f172a`, `#e2e8f0` |
 | `font`, `fontSize`, `fitPadding` | `system-ui, sans-serif`, `12`, `60` |
 | `label(group)` | `group.label`; use it to translate |
+| `locked` | `false`; `true` turns off zoom, pan and drag, keeps hover, and lets the page scroll past |
 | `groupColor(group)`, `flowColor(flow)` | the payload's colors; use them to match a site theme |
 | `flowGradient(flow)` | a solid line; return `[from, to]` for a two-color line with no arrow |
 | `size(group)` | dot area, all equal (`6`, tracker `8`); e.g. size categories by `details.counts` |

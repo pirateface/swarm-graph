@@ -125,6 +125,9 @@ export function renderSwarmGraph(element, view, options = {}) {
 
   const graph = ForceGraph()(element)
     .backgroundColor(opts.background)
+    .enableZoomInteraction(!opts.locked)
+    .enablePanInteraction(!opts.locked)
+    .enableNodeDrag(!opts.locked)
     .nodeVal(size)
     .nodeColor(colorOf)
     .nodeLabel(tooltipOf)
