@@ -20,6 +20,7 @@ const DEFAULTS = {
   textColor: "#e2e8f0",
   font: "system-ui, sans-serif",
   fontSize: 12,
+  fitZoom: 0.8,
   fitPadding: 60,
 };
 
@@ -120,7 +121,7 @@ export function renderSwarmGraph(element, view, options = {}) {
     // Slanted category labels hang below the bottom row: shift up and zoom out a little to show them.
     const c = graph.centerAt();
     graph.centerAt(c.x + 40 / graph.zoom(), c.y + 60 / graph.zoom());
-    graph.zoom(graph.zoom() * 0.8);
+    graph.zoom(graph.zoom() * opts.fitZoom);
   };
 
   const graph = ForceGraph()(element)
