@@ -138,6 +138,7 @@ export function renderSwarmGraph(element, view, options = {}) {
     .linkWidth(flowWidth)
     .linkCanvasObjectMode((l) => (opts.flowGradient?.(l) ? "replace" : undefined))
     .linkCanvasObject((l, ctx, scale) => {
+      if (!Number.isFinite(l.source.x) || !Number.isFinite(l.target.x)) return; // not laid out yet
       const [from, to] = opts.flowGradient(l);
       const gradient = ctx.createLinearGradient(l.source.x, l.source.y, l.target.x, l.target.y);
       gradient.addColorStop(0, from);
