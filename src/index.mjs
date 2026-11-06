@@ -23,6 +23,7 @@ const DEFAULTS = {
   fitZoom: 0.8,
   hoverFade: 0.15,
   fitPadding: 60,
+  labelAngle: 45,
 };
 
 /** Escape text for use in tooltip HTML (for custom `tooltip` options too). */
@@ -45,7 +46,7 @@ function drawLabel(group, label, ctx, scale, opts, radius) {
   if (group.kind === "category") {
     ctx.save();
     ctx.translate(group.x, group.y + radius + 3 / scale);
-    ctx.rotate(Math.PI / 4);
+    ctx.rotate((opts.labelAngle * Math.PI) / 180);
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     ctx.fillText(label, 0, 0);

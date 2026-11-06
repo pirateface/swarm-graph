@@ -52,6 +52,7 @@
  * @property {string} [font]         label font family (default "system-ui, sans-serif")
  * @property {number} [fontSize]     label size in px at zoom 1 (default 12)
  * @property {number} [fitPadding]   px around the groups when fitting (default 60)
+ * @property {number} [labelAngle]   slant of category labels in degrees (default 45)
  * @property {(group: Group) => string} [label]       label text (e.g. translated); default group.label
  * @property {(group: Group) => string} [groupColor]  dot color; default group.color
  * @property {(group: Group) => number} [size]        dot area (radius grows with its square root); default 6, tracker 8
