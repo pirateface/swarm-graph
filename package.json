@@ -1,6 +1,6 @@
 {
   "name": "swarm-graph",
-  "version": "0.6.5",
+  "version": "0.6.6",
   "description": "Renderer for the Pirate Face swarm pyramid (swarm API /api/v1/simple)",
   "scripts": {
     "build": "esbuild src/index.mjs --bundle --format=esm --minify --outfile=dist/swarm-graph.js"

@@ -141,6 +141,8 @@ export function renderSwarmGraph(element, view, options = {}) {
   };
 
   const graph = ForceGraph()(element)
+    .width(element.clientWidth) // before the first fit, which otherwise can use force-graph's window-sized default
+    .height(element.clientHeight)
     .backgroundColor(opts.background)
     .enableZoomInteraction(!opts.locked)
     .enablePanInteraction(!opts.locked)
