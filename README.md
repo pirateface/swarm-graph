@@ -50,6 +50,11 @@ Options (all optional):
 | `tooltip(group)` | label, detail lines, busiest models; build HTML with the exported `escapeHtml` |
 | `flowLabel(flow)` | the flow's count; return `""` for no hover text |
 | `onGroupClick(group)` | none |
+| `flowWidth(flow)` | `1 + log2(count)`; line width in screen px. Setting it (or `flowCurve`) drops the arrowheads |
+| `flowCurve` | `0`; bow of each line as a fraction of its length, away from the graph's vertical centre line |
+| `nodeStyle`, `groupStroke(group)` | `"dot"`; `"ring"` draws a 10% fill and a 1.5 px edge in `groupStroke` (default the dot color) |
+| `labelHalo` | none; color of a box just behind each label, so lines don't cut through text |
+| `bandBar` | `false`; DHT bands as ticks on one vertical bar, labels on the left, band-to-band flows not drawn |
 
 `graph.pulse(id, text, color)` lights a group up for 2.5 s: a fading ring and
 `text` rising above it, in `color` (default: the group's color).

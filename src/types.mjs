@@ -66,6 +66,12 @@
  * @property {(group: Group) => string} [tooltip]     tooltip HTML; escape text with escapeHtml()
  * @property {(flow: Flow) => string} [flowLabel]     flow hover text; default its count, "" shows none
  * @property {(group: Group) => void} [onGroupClick]
+ * @property {(flow: Flow) => number} [flowWidth]   line width in screen px; default 1 + log2(count). Set (or flowCurve) = no arrowheads
+ * @property {number} [flowCurve]                  bow of each line as a fraction of its length, away from the graph's vertical centre line; default 0 (straight)
+ * @property {"dot" | "ring"} [nodeStyle]           "ring": 10% fill and a 1.5 px edge in groupStroke; default "dot"
+ * @property {(group: Group) => string} [groupStroke]  ring edge color; default the dot color
+ * @property {string} [labelHalo]                  color of a box just behind each label, so lines don't cut through text; default none
+ * @property {boolean} [bandBar]                   DHT bands as ticks on one vertical bar, labels on the left; band-to-band flows not drawn
  */
 
 export {};
