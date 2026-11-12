@@ -86,13 +86,20 @@ function drawLabel(group, label, ctx, scale, opts, radius) {
 }
 
 // force-graph input: groups pinned at the payload's positions, flows as links. With bandBar the
-// band-to-band flows are left out: the bar stands for them.
-const toGraphData = (/** @type {SimpleView} */ view, opts) => ({
-  nodes: view.groups.map((g) => ({ ...g, fx: g.x, fy: g.y })),
-  links: view.flows
-    .filter((f) => !(opts.bandBar && f.kind === "dht" && f.from.startsWith("b:") && f.to.startsWith("b:")))
-    .map((f) => ({ ...f, source: f.from, target: f.to })),
-});
+// band-to-band flows are left out: the bar stands for them. Nodes already drawn are updated in place
+// and links point at node objects, so every frame between this call and force-graph's deferred
+// update (a 1 ms debounce) still has positions and resolved links: an update never blanks the graph.
+const toGraphData = (/** @type {SimpleView} */ view, opts, previous = []) => {
+  const known = new Map(previous.map((n) => [n.id, n]));
+  const nodes = view.groups.map((g) => Object.assign(known.get(g.id) ?? {}, g, { x: g.x, y: g.y, fx: g.x, fy: g.y }));
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  return {
+    nodes,
+    links: view.flows
+      .filter((f) => !(opts.bandBar && f.kind === "dht" && f.from.startsWith("b:") && f.to.startsWith("b:")))
+      .map((f) => ({ ...f, source: byId.get(f.from) ?? f.from, target: byId.get(f.to) ?? f.to })),
+  };
+};
 
 /**
  * @param {HTMLElement} element  container; the graph fills it
@@ -297,7 +304,7 @@ export function renderSwarmGraph(element, view, options = {}) {
     /** Replace the data (e.g. after polling the API again). Positions are stable, so nothing jumps. */
     update(/** @type {SimpleView} */ next) {
       setCentre(next);
-      graph.graphData(toGraphData(next, opts));
+      graph.graphData(toGraphData(next, opts, graph.graphData().nodes));
     },
     /** Light up a group for a moment: a fading ring, plus `text` (e.g. "+2") rising above it; `color` defaults to the group's. */
     pulse(/** @type {string} */ id, /** @type {string} */ text = "", /** @type {string | undefined} */ color) {
