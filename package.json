@@ -1,9 +1,10 @@
 {
   "name": "swarm-graph",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Renderer for the Pirate Face swarm pyramid (swarm API /api/v1/simple)",
   "scripts": {
-    "build": "esbuild src/index.mjs --bundle --format=esm --minify --outfile=dist/swarm-graph.js"
+    "build": "esbuild src/index.mjs --bundle --format=esm --minify --outfile=dist/swarm-graph.js",
+    "types": "tsc --allowJs --declaration --emitDeclarationOnly --skipLibCheck --module esnext --moduleResolution bundler --target es2020 --outDir types src/index.mjs"
   },
   "repository": {
     "type": "git",
@@ -17,16 +18,22 @@
     "force-graph": "^1.47.4"
   },
   "devDependencies": {
-    "esbuild": "^0.28.2"
+    "esbuild": "^0.28.2",
+    "typescript": "5.5.4"
   },
   "private": true,
   "type": "module",
+  "types": "./types/index.d.mts",
   "exports": {
-    ".": "./src/index.mjs",
+    ".": {
+      "types": "./types/index.d.mts",
+      "default": "./src/index.mjs"
+    },
     "./bundle": "./dist/swarm-graph.js"
   },
   "files": [
     "src",
-    "dist"
+    "dist",
+    "types"
   ]
 }
