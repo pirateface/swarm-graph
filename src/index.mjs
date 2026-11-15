@@ -306,8 +306,13 @@ export function renderSwarmGraph(element, view, options = {}) {
       setCentre(next);
       graph.graphData(toGraphData(next, opts, graph.graphData().nodes));
     },
-    /** Light up a group for a moment: a fading ring, plus `text` (e.g. "+2") rising above it; `color` defaults to the group's. */
-    pulse(/** @type {string} */ id, /** @type {string} */ text = "", /** @type {string | undefined} */ color) {
+    /**
+     * Light up a group for a moment: a fading ring, plus `text` (e.g. "+2") rising above it; `color` defaults to the group's.
+     * @param {string} id
+     * @param {string} [text]
+     * @param {string} [color]
+     */
+    pulse(id, text = "", color) {
       pulses.set(id, { text, color, start: performance.now() });
     },
     /** Change options (e.g. colors after a light/dark theme switch); unchanged ones are kept. */
