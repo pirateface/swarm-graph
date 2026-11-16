@@ -105,7 +105,7 @@ export type RenderOptions = {
      */
     fontSize?: number;
     /**
-     * px around the groups when fitting (default 60)
+     * px between the drawing, labels included, and the container edge when fitting (default 60)
      */
     fitPadding?: number;
     /**
@@ -136,10 +136,6 @@ export type RenderOptions = {
      * opacity of everything else while hovering a group; default 0.15
      */
     hoverFade?: number;
-    /**
-     * scale after fitting; default 0.8 leaves room for slanted labels
-     */
-    fitZoom?: number;
     /**
      * no zoom, pan or drag; hover still works and the page scrolls past
      */

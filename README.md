@@ -39,7 +39,6 @@ Options (all optional):
 | `font`, `fontSize`, `fitPadding` | `system-ui, sans-serif`, `12`, `60` |
 | `label(group)` | `group.label`; use it to translate |
 | `hoverFade` | `0.15`; opacity of everything outside the hovered group's neighbors |
-| `fitZoom` | `0.8`; scale after fitting, higher shows the graph larger |
 | `labelAngle` | `45`; slant of category labels in degrees |
 | `marked` | `(group) => boolean`; groups that keep `markText` above their dot |
 | `markText` | `"You"`; text above marked groups |

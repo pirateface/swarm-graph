@@ -20,7 +20,6 @@ const DEFAULTS = {
   textColor: "#e2e8f0",
   font: "system-ui, sans-serif",
   fontSize: 12,
-  fitZoom: 0.8,
   hoverFade: 0.15,
   fitPadding: 60,
   labelAngle: 45,
@@ -256,12 +255,46 @@ export function renderSwarmGraph(element, view, options = {}) {
     .filter((l) => l.source.id === group.id || l.target.id === group.id)
     .flatMap((l) => [l.source.id, l.target.id])]);
 
+  // Fit everything drawn, labels included, inside the container less fitPadding.
+  // Labels keep their pixel size at any zoom, so the zoom that fits them is found in a few rounds.
+  const measure = document.createElement("canvas").getContext("2d");
   const fit = () => {
-    graph.zoomToFit(0, opts.fitPadding);
-    // Slanted category labels hang below the bottom row: shift up and zoom out a little to show them.
-    const c = graph.centerAt();
-    graph.centerAt(c.x + 40 / graph.zoom(), c.y + 60 / graph.zoom());
-    graph.zoom(graph.zoom() * opts.fitZoom);
+    const nodes = graph.graphData().nodes;
+    if (!nodes.length) return;
+    measure.font = `${opts.fontSize}px ${opts.font}`;
+    const line = opts.fontSize * 1.2;
+    const angle = (opts.labelAngle * Math.PI) / 180;
+    // Bounds of the groups and their labels at zoom k, in graph units, from drawLabel's offsets.
+    const bounds = (k) => {
+      const xs = [], ys = [];
+      for (const g of nodes) {
+        const r = isBand(g, opts) ? 0 : radius(g), w = measure.measureText(labelOf(g)).width / k, h = line / k;
+        xs.push(g.x - r, g.x + r);
+        ys.push(g.y - r, g.y + r);
+        if (opts.marked?.(g)) ys.push(g.y - r - 3 / k - h);
+        if (g.kind === "category") {
+          xs.push(g.x + w * Math.cos(angle) + h / 2);
+          ys.push(g.y + r + 3 / k + w * Math.sin(angle) + h / 2);
+        } else if (isBand(g, opts)) {
+          xs.push(g.x - 9 / k - w);
+        } else {
+          xs.push(g.x - w / 2, g.x + w / 2);
+          ys.push(g.y + r + 2 / k + h);
+        }
+      }
+      return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) };
+    };
+    // The groups stay centered across (centreX), so the side the labels lean to sets the width.
+    const span = (b) => [2 * Math.max(centreX - b.x0, b.x1 - centreX) || 1, b.y1 - b.y0 || 1];
+    const room = (size) => Math.max(1, size - 2 * opts.fitPadding);
+    let k = 1;
+    for (let round = 0; round < 8; round++) {
+      const [w, h] = span(bounds(k));
+      k = Math.min(room(graph.width()) / w, room(graph.height()) / h);
+    }
+    const b = bounds(k);
+    graph.centerAt(centreX, (b.y0 + b.y1) / 2);
+    graph.zoom(k);
   };
 
   const graph = ForceGraph()(element)
@@ -297,7 +330,11 @@ export function renderSwarmGraph(element, view, options = {}) {
 
   graph.graphData(toGraphData(view, opts));
 
-  const resize = new ResizeObserver(() => graph.width(element.clientWidth).height(element.clientHeight));
+  // A new container size (a phone turned, the card reflowed) fits the graph again.
+  const resize = new ResizeObserver(() => {
+    graph.width(element.clientWidth).height(element.clientHeight);
+    if (!pendingFit) fit();
+  });
   resize.observe(element);
 
   return {

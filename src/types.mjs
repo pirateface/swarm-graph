@@ -51,7 +51,7 @@
  * @property {string} [textColor]    label color (default "#e2e8f0")
  * @property {string} [font]         label font family (default "system-ui, sans-serif")
  * @property {number} [fontSize]     label size in px at zoom 1 (default 12)
- * @property {number} [fitPadding]   px around the groups when fitting (default 60)
+ * @property {number} [fitPadding]   px between the drawing, labels included, and the container edge when fitting (default 60)
  * @property {number} [labelAngle]   slant of category labels in degrees (default 45)
  * @property {(group: Group) => boolean} [marked]  groups that keep `markText` above their dot
  * @property {string} [markText]     text above marked groups (default "You")
@@ -59,7 +59,6 @@
  * @property {(group: Group) => string} [groupColor]  dot color; default group.color
  * @property {(group: Group) => number} [size]        dot area (radius grows with its square root); default 6, tracker 8
  * @property {number} [hoverFade]                    opacity of everything else while hovering a group; default 0.15
- * @property {number} [fitZoom]                      scale after fitting; default 0.8 leaves room for slanted labels
  * @property {boolean} [locked]                       no zoom, pan or drag; hover still works and the page scrolls past
  * @property {(flow: Flow) => string} [flowColor]     line color; default flow.color
  * @property {(flow: Flow) => [string, string] | undefined} [flowGradient]  from and to colors for a two-color line, drawn without an arrow
