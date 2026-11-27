@@ -15,6 +15,16 @@ import ForceGraph from "force-graph";
 /** @typedef {import("./types.mjs").SimpleView} SimpleView */
 /** @typedef {import("./types.mjs").RenderOptions} RenderOptions */
 
+// Shared 1x1 scratch canvas for withAlpha(): one canvas for every graph, lazily created.
+let sharedScratch = null;
+const scratchCanvas = () => (sharedScratch ??= document.createElement("canvas").getContext("2d", { willReadFrequently: true }));
+
+// The groups stay centered across centreX, so the side the labels lean to sets the width.
+const span = (b, centreX) => [2 * Math.max(centreX - b.x0, b.x1 - centreX) || 1, b.y1 - b.y0 || 1];
+
+// Room inside the container less fitPadding, for one side.
+const room = (size, fitPadding) => Math.max(1, size - 2 * fitPadding);
+
 const DEFAULTS = {
   background: "#0f172a",
   textColor: "#e2e8f0",
@@ -117,12 +127,12 @@ export function renderSwarmGraph(element, view, options = {}) {
   // While hovering, everything outside the hovered group's neighborhood stays visible but faint.
   const inFocus = (g) => !focus || focus.has(g.id);
   const flowInFocus = (l) => !focus || (focus.has(l.source.id) && focus.has(l.target.id));
-  const scratch = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
   const fadedColors = new Map();
   // Any CSS color with its alpha multiplied by `alpha` (cached).
   const withAlpha = (color, alpha) => {
     const key = `${color}|${alpha}`;
     if (!fadedColors.has(key)) {
+      const scratch = scratchCanvas();
       scratch.clearRect(0, 0, 1, 1);
       scratch.fillStyle = color;
       scratch.fillRect(0, 0, 1, 1);
@@ -175,6 +185,18 @@ export function renderSwarmGraph(element, view, options = {}) {
     ctx.restore();
   };
 
+  // Band list for the bar: memoized per graph-data identity, shared by every band draw.
+  const bandCache = { nodes: null, bands: null };
+  const bandList = () => {
+    const nodes = graph.graphData().nodes;
+    if (bandCache.nodes !== nodes) {
+      const bands = nodes.filter((n) => n.kind === "dht-band");
+      bandCache.nodes = nodes;
+      bandCache.bands = bands;
+    }
+    return { bands: bandCache.bands, ys: bandCache.bands.map((n) => n.y) };
+  };
+
   // nodeStyle "ring": a low-alpha fill and a 1.5 px edge. With bandBar, DHT bands are 10 px ticks on
   // one vertical bar (drawn with the first band).
   const drawGroup = (g, ctx, scale) => {
@@ -182,9 +204,8 @@ export function renderSwarmGraph(element, view, options = {}) {
     const edge = opts.groupStroke?.(g) ?? color;
     ctx.lineWidth = 1.5 / scale;
     if (isBand(g, opts)) {
-      const bands = graph.graphData().nodes.filter((n) => n.kind === "dht-band");
+      const { bands, ys } = bandList();
       if (g.id === bands[0]?.id) {
-        const ys = bands.map((n) => n.y);
         ctx.strokeStyle = withAlpha(edge, 0.55);
         ctx.beginPath();
         ctx.moveTo(g.x, Math.min(...ys));
@@ -265,7 +286,7 @@ export function renderSwarmGraph(element, view, options = {}) {
     const line = opts.fontSize * 1.2;
     const angle = (opts.labelAngle * Math.PI) / 180;
     // Bounds of the groups and their labels at zoom k, in graph units, from drawLabel's offsets.
-    const bounds = (k) => {
+    const boundsAt = (k) => {
       const xs = [], ys = [];
       for (const g of nodes) {
         const r = isBand(g, opts) ? 0 : radius(g), w = measure.measureText(labelOf(g)).width / k, h = line / k;
@@ -284,15 +305,12 @@ export function renderSwarmGraph(element, view, options = {}) {
       }
       return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) };
     };
-    // The groups stay centered across (centreX), so the side the labels lean to sets the width.
-    const span = (b) => [2 * Math.max(centreX - b.x0, b.x1 - centreX) || 1, b.y1 - b.y0 || 1];
-    const room = (size) => Math.max(1, size - 2 * opts.fitPadding);
     let k = 1;
     for (let round = 0; round < 8; round++) {
-      const [w, h] = span(bounds(k));
-      k = Math.min(room(graph.width()) / w, room(graph.height()) / h);
+      const [w, h] = span(boundsAt(k), centreX);
+      k = Math.min(room(graph.width(), opts.fitPadding) / w, room(graph.height(), opts.fitPadding) / h);
     }
-    const b = bounds(k);
+    const b = boundsAt(k);
     graph.centerAt(centreX, (b.y0 + b.y1) / 2);
     graph.zoom(k);
   };
