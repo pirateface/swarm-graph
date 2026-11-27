@@ -186,16 +186,15 @@ export function renderSwarmGraph(element, view, options = {}) {
   };
 
   // Band list for the bar: memoized per graph-data identity, shared by every band draw.
-  const bandCache = { nodes: null, bands: null, ys: null };
+  const bandCache = { nodes: null, bands: null };
   const bandList = () => {
     const nodes = graph.graphData().nodes;
     if (bandCache.nodes !== nodes) {
       const bands = nodes.filter((n) => n.kind === "dht-band");
       bandCache.nodes = nodes;
       bandCache.bands = bands;
-      bandCache.ys = bands.map((n) => n.y);
     }
-    return bandCache;
+    return { bands: bandCache.bands, ys: bandCache.bands.map((n) => n.y) };
   };
 
   // nodeStyle "ring": a low-alpha fill and a 1.5 px edge. With bandBar, DHT bands are 10 px ticks on
